@@ -1,0 +1,4 @@
+encryptionsalt: v1:gyRXL0Rj9RA=:v1:OO2rJLupsZFMkb/L:AKF/1B/WCMH6W3VI67gdCSwVHVocYw==
+config:
+  azure:environment: public
+  azure:location: australiaeast
