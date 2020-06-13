@@ -1,30 +1,23 @@
-import * as k8s from "@pulumi/kubernetes";
+import * as k8s from "@pulumi/kubernetesx";
 
-import { k8sCluster, k8sProvider, acr } from './cluster';
+import { k8sCluster, k8sProvider } from './cluster';
 
-const appLabels = { app: 'nginx' };
-const nginxDeployment = new k8s.apps.v1.Deployment('nginx', {
-  spec: {
-    selector: { matchLabels: appLabels },
-    replicas: 1,
-    template: {
-      metadata: { labels: appLabels },
-      spec: {
-        containers: [
-          {
-            name: 'nginx',
-            image: acr.then(r => `${r.name}.azurecr.io/nginx:mainline-alpine`),
-            ports: [
-              { name: 'http', containerPort: 80 },
-            ]
-          }
-        ]
-      }
-    }
-  }
+const pb = new k8s.PodBuilder({
+  containers: [{
+    name: 'nginx',
+    ports: { http: 80 },
+  }]
+});
+
+const deployment = new k8s.Deployment('nginx', {
+  spec: pb.asDeploymentSpec({ replicas: 1 }),
 }, { provider: k8sProvider });
 
-export const name = nginxDeployment.metadata.name;
+deployment.createService({
+  type: k8s.types.ServiceType.ClusterIP,
+});
+
+export const name = deployment.metadata.name;
 export const azCliKubectlGetCredentials = `az aks get-credentials --resource-group ${k8sCluster.resourceGroupName} --name ${k8sCluster.name}`
 
 
